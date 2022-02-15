@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import Constants from 'expo-constants';
-import Convertor from 'views/Convertor';
+import Converter from 'views/Converter';
 import Rates from 'views/Rates';
 
 const Main = () => (
@@ -11,7 +11,7 @@ const Main = () => (
         }}
     >
         <Rates />
-        <Convertor />
+        <Converter />
     </View>
 );
 
