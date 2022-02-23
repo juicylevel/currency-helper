@@ -1,6 +1,6 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { currencies } from 'configs';
 import { CurrencyCode } from 'enums';
 import AmountValue from './AmountValue';
@@ -18,19 +18,34 @@ const Input: React.FC<InputProps> = ({
     onChangeCurrency,
     onChangeAmount,
 }) => {
+    const [inputValue, setInputValue] = useState<string>();
+
+    useEffect(() => {
+        setInputValue(amount?.toString());
+    }, [amount]);
+
+    console.log(amount);
+
+    const handleChangeText = useCallback(
+        (textValue: string) => {
+            const fixedValue = textValue.replace(',', '.');
+            setInputValue(fixedValue);
+
+            if (fixedValue === '') {
+                onChangeAmount(undefined);
+            } else if (/^(\d*)(\.)*(\d+)$/gi.test(fixedValue)) {
+                onChangeAmount(+fixedValue);
+            }
+        },
+        [onChangeAmount]
+    );
+
     const currenciesOptions = useMemo(
         () =>
             Object.entries(currencies).map(([code, currency]) => (
                 <Picker.Item key={code} label={currency.symbol} value={code} />
             )),
         []
-    );
-
-    const handleChangeText = useCallback(
-        (textValue: string) => {
-            onChangeAmount(textValue !== '' ? +textValue : undefined);
-        },
-        [onChangeAmount]
     );
 
     return (
@@ -52,7 +67,7 @@ const Input: React.FC<InputProps> = ({
                 style={styles.input}
                 placeholder="сумма"
                 keyboardType="numeric"
-                value={amount?.toString()}
+                value={inputValue}
                 onChangeText={handleChangeText}
             />
         </View>
