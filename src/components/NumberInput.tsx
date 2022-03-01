@@ -17,7 +17,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
 }) => {
     const [inputValue, setInputValue] = useState<string>();
 
-    console.debug(value);
+    console.log(value);
 
     useEffect(() => {
         const formattedValue =

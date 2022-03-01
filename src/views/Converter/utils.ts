@@ -1,4 +1,4 @@
-import { CurrencyCode } from 'enums';
+import { CurrencyCode, Side } from 'enums';
 import { toFixed } from 'helpers';
 import { RatesData } from 'types';
 import AmountValue from './AmountValue';
@@ -27,4 +27,8 @@ export const calcRate = (
     rightCurrency: CurrencyCode
 ): number => {
     return ratesData[leftCurrency] / ratesData[rightCurrency];
+};
+
+export const getOpposide = (side: Side): Side => {
+    return side === Side.LEFT ? Side.RIGHT : Side.LEFT;
 };

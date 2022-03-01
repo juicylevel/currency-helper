@@ -1,17 +1,15 @@
-import { CurrencyCode } from 'enums';
-import { atom, selector } from 'recoil';
+import { Side, CurrencyCode } from 'enums';
+import { atom, atomFamily, selector, selectorFamily } from 'recoil';
 import { rates } from 'state';
+import { calcRate, leftToRight, rightToLeft, getOpposide } from './utils';
 import AmountValue from './AmountValue';
-import { calcRate, leftToRight, rightToLeft } from './utils';
 
-const leftCurrencyState = atom<CurrencyCode>({
-    key: 'leftCurrency',
-    default: CurrencyCode.USD,
-});
+const DEFAULT_LEFT_AMOUNT = 1;
 
-const rightCurrencyState = atom<CurrencyCode>({
-    key: 'rightCurrency',
-    default: CurrencyCode.RUB,
+const currencyState = atomFamily<CurrencyCode, Side>({
+    key: 'currency',
+    default: (side) =>
+        side === Side.LEFT ? CurrencyCode.USD : CurrencyCode.RUB,
 });
 
 const rateState = atom<number>({
@@ -21,93 +19,83 @@ const rateState = atom<number>({
         get: ({ get }) => {
             return calcRate(
                 get(rates),
-                get(leftCurrencyState),
-                get(rightCurrencyState)
+                get(currencyState(Side.LEFT)),
+                get(currencyState(Side.RIGHT))
             );
         },
     }),
 });
 
-const rightDefaultAmountState = selector<AmountValue>({
-    key: 'defaultRight',
-    get: ({ get }) => {
-        const rate = get(rateState);
-        return leftToRight(get(leftAmountState), rate);
-    },
+const defaultAmountState = selectorFamily<AmountValue, Side>({
+    key: 'defaultAmount',
+    get:
+        (side) =>
+        ({ get }) => {
+            if (side === Side.RIGHT) {
+                const rate = get(rateState);
+                return leftToRight(DEFAULT_LEFT_AMOUNT, rate);
+            } else if (side === Side.LEFT) {
+                return DEFAULT_LEFT_AMOUNT;
+            }
+        },
 });
 
-const leftAmountState = atom<AmountValue>({
-    key: 'leftAmount',
-    default: 1,
+const amountState = atomFamily<AmountValue, Side>({
+    key: 'amount',
+    default: defaultAmountState,
 });
 
-const rightAmountState = atom<AmountValue>({
-    key: 'rightAmount',
-    default: rightDefaultAmountState,
+export const amountInputState = selectorFamily<AmountValue, Side>({
+    key: 'amountInput',
+    get: (side) => () => amountState(side),
+    set:
+        (side) =>
+        ({ get, set }, newValue) => {
+            const newAmount = newValue as AmountValue;
+            const rate = get(rateState);
+
+            const leftAmount =
+                side === Side.LEFT ? newAmount : rightToLeft(newAmount, rate);
+            const rightAmount =
+                side === Side.RIGHT ? newAmount : leftToRight(newAmount, rate);
+
+            set(amountState(Side.LEFT), leftAmount);
+            set(amountState(Side.RIGHT), rightAmount);
+        },
 });
 
-export const leftCurrencyInputState = selector<CurrencyCode>({
-    key: 'leftCurrencyInput',
-    get: () => leftCurrencyState,
-    set: ({ get, set }, newValue) => {
-        const newLeftCurrency = newValue as CurrencyCode;
-        let rightCurrency = get(rightCurrencyState);
+export const currencyInputState = selectorFamily<CurrencyCode, Side>({
+    key: 'currencyInput',
+    get: (side) => () => currencyState(side),
+    set:
+        (side) =>
+        ({ get, set }, newValue) => {
+            let newCurrency = newValue as CurrencyCode;
+            let opposideCurrency = get(currencyState(getOpposide(side)));
+            let leftCurrency, rightCurrency;
 
-        if (newLeftCurrency === rightCurrency) {
-            rightCurrency = get(leftCurrencyState);
-            set(leftCurrencyState, newLeftCurrency);
-            set(rightCurrencyState, rightCurrency);
-        } else {
-            set(leftCurrencyState, newLeftCurrency);
-        }
+            const currentLeft = get(currencyState(Side.LEFT));
+            const currentRight = get(currencyState(Side.RIGHT));
 
-        const newRate = calcRate(get(rates), newLeftCurrency, rightCurrency);
-        const newRightAmount = leftToRight(get(leftAmountState), newRate);
-        set(rateState, newRate);
-        set(rightAmountState, newRightAmount);
-    },
-});
+            if (newCurrency === opposideCurrency) {
+                leftCurrency = currentRight;
+                rightCurrency = currentLeft;
+            } else {
+                leftCurrency = side === Side.LEFT ? newCurrency : currentLeft;
+                rightCurrency =
+                    side === Side.RIGHT ? newCurrency : currentRight;
+            }
 
-export const rightCurrencyInputState = selector<CurrencyCode>({
-    key: 'rightCurrencyInput',
-    get: () => rightCurrencyState,
-    set: ({ get, set }, newValue) => {
-        const newRightCurrency = newValue as CurrencyCode;
-        let leftCurrency = get(leftCurrencyState);
+            set(currencyState(Side.LEFT), leftCurrency);
+            set(currencyState(Side.RIGHT), rightCurrency);
 
-        if (newRightCurrency === leftCurrency) {
-            leftCurrency = get(rightCurrencyState);
-            set(leftCurrencyState, leftCurrency);
-            set(rightCurrencyState, newRightCurrency);
-        } else {
-            set(rightCurrencyState, newRightCurrency);
-        }
+            const newRate = calcRate(get(rates), leftCurrency, rightCurrency);
+            const newRightAmount = leftToRight(
+                get(amountState(Side.LEFT)),
+                newRate
+            );
 
-        const newRate = calcRate(get(rates), leftCurrency, newRightCurrency);
-        const newRightAmount = leftToRight(get(leftAmountState), newRate);
-        set(rateState, newRate);
-        set(rightAmountState, newRightAmount);
-    },
-});
-
-export const leftAmountInputState = selector<AmountValue>({
-    key: 'leftAmountInput',
-    get: () => leftAmountState,
-    set: ({ get, set }, newLeftAmount) => {
-        const rate = get(rateState);
-        const newRightAmount = leftToRight(newLeftAmount as AmountValue, rate);
-        set(leftAmountState, newLeftAmount);
-        set(rightAmountState, newRightAmount);
-    },
-});
-
-export const rightAmountInputState = selector<AmountValue>({
-    key: 'rightAmountInput',
-    get: () => rightAmountState,
-    set: ({ get, set }, newRightAmount) => {
-        const rate = get(rateState);
-        const newLeftAmount = rightToLeft(newRightAmount as AmountValue, rate);
-        set(leftAmountState, newLeftAmount);
-        set(rightAmountState, newRightAmount);
-    },
+            set(rateState, newRate);
+            set(amountState(Side.RIGHT), newRightAmount);
+        },
 });

@@ -1,9 +1,14 @@
+import { Side } from 'enums';
 import { useRecoilState } from 'recoil';
-import { leftAmountInputState, leftCurrencyInputState } from '../state';
+import { currencyInputState, amountInputState } from '../state';
 
 const useInput = () => {
-    const [currency, onChangeCurrency] = useRecoilState(leftCurrencyInputState);
-    const [amount, onChangeAmount] = useRecoilState(leftAmountInputState);
+    const [currency, onChangeCurrency] = useRecoilState(
+        currencyInputState(Side.LEFT)
+    );
+    const [amount, onChangeAmount] = useRecoilState(
+        amountInputState(Side.LEFT)
+    );
 
     return {
         currency,
