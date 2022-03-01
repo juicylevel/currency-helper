@@ -26,7 +26,6 @@ const Input: React.FC<InputProps> = ({
             )),
         []
     );
-
     return (
         <View
             style={{
