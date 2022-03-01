@@ -1,8 +1,9 @@
-import { StyleSheet, TextInput, View } from 'react-native';
+import { View } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { currencies } from 'configs';
 import { CurrencyCode } from 'enums';
+import { NumberInput } from 'components';
 import AmountValue from './AmountValue';
 
 type InputProps = {
@@ -18,28 +19,6 @@ const Input: React.FC<InputProps> = ({
     onChangeCurrency,
     onChangeAmount,
 }) => {
-    const [inputValue, setInputValue] = useState<string>();
-
-    useEffect(() => {
-        setInputValue(amount?.toString());
-    }, [amount]);
-
-    console.log(amount);
-
-    const handleChangeText = useCallback(
-        (textValue: string) => {
-            const fixedValue = textValue.replace(',', '.');
-            setInputValue(fixedValue);
-
-            if (fixedValue === '') {
-                onChangeAmount(undefined);
-            } else if (/^(\d*)(\.)*(\d+)$/gi.test(fixedValue)) {
-                onChangeAmount(+fixedValue);
-            }
-        },
-        [onChangeAmount]
-    );
-
     const currenciesOptions = useMemo(
         () =>
             Object.entries(currencies).map(([code, currency]) => (
@@ -63,26 +42,13 @@ const Input: React.FC<InputProps> = ({
             >
                 {currenciesOptions}
             </Picker>
-            <TextInput
-                style={styles.input}
+            <NumberInput
+                value={amount}
                 placeholder="сумма"
-                keyboardType="numeric"
-                value={inputValue}
-                onChangeText={handleChangeText}
+                onChange={onChangeAmount}
             />
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    input: {
-        height: 40,
-        margin: 12,
-        borderBottomWidth: 1,
-        borderColor: '#ccc',
-        fontSize: 20,
-        flexGrow: 1,
-    },
-});
 
 export default Input;

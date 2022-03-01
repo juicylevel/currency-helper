@@ -94,15 +94,10 @@ export const leftAmountInputState = selector<AmountValue>({
     key: 'leftAmountInput',
     get: () => leftAmountState,
     set: ({ get, set }, newLeftAmount) => {
-        if (!isNaN(newLeftAmount as number)) {
-            const rate = get(rateState);
-            const newRightAmount = leftToRight(
-                newLeftAmount as AmountValue,
-                rate
-            );
-            set(leftAmountState, newLeftAmount);
-            set(rightAmountState, newRightAmount);
-        }
+        const rate = get(rateState);
+        const newRightAmount = leftToRight(newLeftAmount as AmountValue, rate);
+        set(leftAmountState, newLeftAmount);
+        set(rightAmountState, newRightAmount);
     },
 });
 
@@ -110,14 +105,9 @@ export const rightAmountInputState = selector<AmountValue>({
     key: 'rightAmountInput',
     get: () => rightAmountState,
     set: ({ get, set }, newRightAmount) => {
-        if (!isNaN(newRightAmount as number)) {
-            const rate = get(rateState);
-            const newLeftAmount = rightToLeft(
-                newRightAmount as AmountValue,
-                rate
-            );
-            set(leftAmountState, newLeftAmount);
-            set(rightAmountState, newRightAmount);
-        }
+        const rate = get(rateState);
+        const newLeftAmount = rightToLeft(newRightAmount as AmountValue, rate);
+        set(leftAmountState, newLeftAmount);
+        set(rightAmountState, newRightAmount);
     },
 });
