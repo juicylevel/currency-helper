@@ -1,7 +1,7 @@
 import { Side, CurrencyCode } from 'enums';
 import { atom, atomFamily, selector, selectorFamily } from 'recoil';
 import { rates } from 'state';
-import { calcRate, leftToRight, rightToLeft, getOpposide } from './utils';
+import { calcRate, leftToRight, rightToLeft, getOpposite } from './utils';
 import AmountValue from './AmountValue';
 
 const DEFAULT_LEFT_AMOUNT = 1;
@@ -71,13 +71,13 @@ export const currencyInputState = selectorFamily<CurrencyCode, Side>({
         (side) =>
         ({ get, set }, newValue) => {
             let newCurrency = newValue as CurrencyCode;
-            let opposideCurrency = get(currencyState(getOpposide(side)));
+            let oppositeCurrency = get(currencyState(getOpposite(side)));
             let leftCurrency, rightCurrency;
 
             const currentLeft = get(currencyState(Side.LEFT));
             const currentRight = get(currencyState(Side.RIGHT));
 
-            if (newCurrency === opposideCurrency) {
+            if (newCurrency === oppositeCurrency) {
                 leftCurrency = currentRight;
                 rightCurrency = currentLeft;
             } else {

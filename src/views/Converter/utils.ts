@@ -29,6 +29,6 @@ export const calcRate = (
     return ratesData[leftCurrency] / ratesData[rightCurrency];
 };
 
-export const getOpposide = (side: Side): Side => {
+export const getOpposite = (side: Side): Side => {
     return side === Side.LEFT ? Side.RIGHT : Side.LEFT;
 };
