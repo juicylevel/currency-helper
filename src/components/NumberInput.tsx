@@ -1,8 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, TextInput, TextInputProps } from 'react-native';
+import { isNaN } from 'lodash';
+import { isEmpty } from 'helpers';
 
-const isValid = (value: string | undefined): boolean => {
-    return /^(\d*)(\.)*(\d+)$/gi.test(value!);
+const formatNumber = (value: number): string => {
+    return !isEmpty(value) ? value.toString().replace('.', ',') : '';
+};
+
+const parseInputValue = (value: string): number | undefined => {
+    if (!isEmpty(value)) {
+        if (value[value.length - 1] === ',') {
+            return NaN;
+        }
+        let withoutFormat = value.replace(/\s/g, '');
+        return +withoutFormat.replace(',', '.');
+    } else {
+        return undefined;
+    }
 };
 
 type NumberInputProps = Pick<TextInputProps, 'placeholder'> & {
@@ -20,20 +34,16 @@ const NumberInput: React.FC<NumberInputProps> = ({
     console.log(value);
 
     useEffect(() => {
-        const formattedValue =
-            value !== undefined ? value.toString().replace('.', ',') : '';
+        const formattedValue = !isEmpty(value) ? formatNumber(value!) : '';
         setInputValue(formattedValue);
     }, [value]);
 
     const handleChangeText = useCallback(
         (textValue: string) => {
             setInputValue(textValue);
-
-            const fixedValue = textValue.replace(',', '.');
-            if (fixedValue === '') {
-                onChange(undefined);
-            } else if (isValid(fixedValue)) {
-                onChange(+fixedValue);
+            const parsedValue = parseInputValue(textValue);
+            if (!isNaN(parsedValue)) {
+                onChange(parsedValue);
             }
         },
         [onChange]
