@@ -9,7 +9,7 @@ const formatNumber = (value: number): string => {
 
 const parseInputValue = (value: string): number | undefined => {
     if (!isEmpty(value)) {
-        if (value[value.length - 1] === ',') {
+        if (value.endsWith(',')) {
             return NaN;
         }
         let withoutFormat = value.replace(/\s/g, '');
