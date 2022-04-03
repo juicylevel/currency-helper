@@ -9,11 +9,15 @@ const formatNumber = (value: number): string => {
 
 const parseInputValue = (value: string): number | undefined => {
     if (!isEmpty(value)) {
-        if (value.endsWith(',')) {
+        let withoutFormat = value.replace(/\s/g, '');
+        withoutFormat = withoutFormat.replace(',', '.');
+        if (
+            isNaN(+withoutFormat) ||
+            /(((\.)|(\.\d*0))$|(^0{2,}$))/g.test(withoutFormat)
+        ) {
             return NaN;
         }
-        let withoutFormat = value.replace(/\s/g, '');
-        return +withoutFormat.replace(',', '.');
+        return +withoutFormat;
     } else {
         return undefined;
     }
