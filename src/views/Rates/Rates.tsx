@@ -1,20 +1,23 @@
+import { CurrencyCode } from 'enums';
 import { StyleSheet, View } from 'react-native';
 import Rate from './Rate';
 
+const { USD, EUR, CNY } = CurrencyCode;
+
 export type RatesProps = {
     data: {
-        USD: number;
-        EUR: number;
-        GBP: number;
+        [USD]: number;
+        [EUR]: number;
+        [CNY]: number;
     };
 };
 
 const Rates: React.FC<RatesProps> = ({ data }) => {
     return (
         <View style={styles.container}>
-            <Rate currency="USD" value={data?.USD} />
-            <Rate currency="EUR" value={data?.EUR} />
-            <Rate currency="GBP" value={data?.GBP} />
+            <Rate currency={USD} value={data?.USD} />
+            <Rate currency={EUR} value={data?.EUR} />
+            <Rate currency={CNY} value={data?.CNY} />
         </View>
     );
 };
